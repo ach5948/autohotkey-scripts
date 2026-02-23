@@ -1,5 +1,5 @@
 #Requires AutoHotKey v2.0
-Presistent(true)
+Persistent(true)
 
 global stopFlag := false
 global typing := false
