@@ -23,7 +23,7 @@ TypeAbort(ThisHotKey)
 
 TypeString(content_in, chunk_size := 4)
 {
-    global stopFalse := false
+    global stopFlag := false
 
     ; Save + Update Send Mode
     orig_send_mode := A_SendMode
