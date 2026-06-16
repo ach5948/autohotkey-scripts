@@ -1,17 +1,35 @@
 #Requires AutoHotKey v2.0
 Persistent(true)
+KeyHistory(200)
 
 global stopFlag := false
 global typing := false
+global active := false
 InstallKeybdHook(true, true)
 
-SetTimer(RehookKeybd, 500)
+SetTimer(RestoreHook, 500)
 
 return
 
-RehookKeybd() {
-    InstallKeybdHook(true, true)
-    return
+RestoreHook() {
+    ; msrdc overrides our hook, so we have to restore it. Continually installing the hook causes
+    ; some weird behavior so we're going to try to be surgical about it.
+    global active
+    if (WinActive("ahk_exe msrdc.exe"))
+    {
+        if (not active) {
+            ; Give them some time to install it
+            Sleep 500
+            InstallKeybdHook(true, true)
+            active := true
+        }
+    }
+    else
+    {
+        if (active) {
+            active := false
+        }
+    }
 }
 
 TypeAbort(ThisHotKey)
@@ -69,15 +87,23 @@ $+^Space::
 }
 
 ; Ctrl + Alt + Left
-$^!Left:: {
+<^<!Left:: {
     WinActivate("Program Manager")
     Send("^#{Left}")
+    ; Restore state of control after Send()
+    if GetKeyState("LCtrl", "P") {
+        Send("{LCtrl down}")
+    }
     return
 }
 
 ; Ctrl + Alt + Right
-$^!Right:: {
+<^<!Right:: {
     WinActivate("Program Manager")
     Send("^#{Right}")
+    ; Restore state of control after Send()
+    if GetKeyState("LCtrl", "P") {
+        Send("{LCtrl down}")
+    }
     return
 }
