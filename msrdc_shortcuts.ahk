@@ -4,7 +4,7 @@ KeyHistory(200)
 
 global stopFlag := false
 global typing := false
-global active := false
+global active := 0
 InstallKeybdHook(true, true)
 
 SetTimer(RestoreHook, 500)
@@ -15,32 +15,29 @@ RestoreHook() {
     ; msrdc overrides our hook, so we have to restore it. Continually installing the hook causes
     ; some weird behavior so we're going to try to be surgical about it.
     global active
-    if (WinActive("ahk_exe msrdc.exe"))
-    {
-        if (not active) {
-            ; Give them some time to install it
-            Sleep 500
-            InstallKeybdHook(true, true)
-            active := true
-        }
+    ref := active
+    if (WinActive("ahk_exe msrdc.exe")) {
+        ; Doesn't actually matter what the value is as long as it's unique for each hook stealing
+        ; program
+        active := 1
+    } else {
+        active := 0
     }
-    else
-    {
-        if (active) {
-            active := false
-        }
+
+    if (active != ref and active != 0) {
+        ; Give them some time to install it
+        Sleep 300
+        InstallKeybdHook(true, true)
     }
 }
 
-TypeAbort(ThisHotKey)
-{
+TypeAbort(ThisHotKey) {
     global stopFlag
     stopFlag := true
     return
 }
 
-TypeString(content_in, chunk_size := 4)
-{
+TypeString(content_in, chunk_size := 4) {
     global stopFlag := false
 
     ; Save + Update Send Mode
@@ -60,8 +57,7 @@ TypeString(content_in, chunk_size := 4)
     counter := 1
     content_len := StrLen(content)
     Loop {
-        if (stopFlag OR (counter >= (content_len + 1)))
-        {
+        if (stopFlag OR (counter >= (content_len + 1))) {
             break
         }
         send_string := SubStr(content, counter, chunk_size)
@@ -80,8 +76,7 @@ TypeString(content_in, chunk_size := 4)
 }
 
 ; Ctrl + Shift + Space
-$+^Space::
-{
+<+^Space:: {
     TypeString(A_Clipboard, 4)
     return
 }
